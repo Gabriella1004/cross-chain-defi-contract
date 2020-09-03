@@ -4,12 +4,11 @@ pragma solidity ^0.4.26;
  * Math operations with safety checks
  */
 
-import "./components/MultiSigWallet.sol";
 import "./components/Halt.sol";
 import "./MappingToken.sol";
 import "./IMappingToken.sol";
 
-contract TokenManagerDelegate is MultiSigWallet, Halt {
+contract TokenManager is Halt {
     using SafeMath for uint;
     /************************************************************
      **
@@ -27,17 +26,6 @@ contract TokenManagerDelegate is MultiSigWallet, Halt {
     * MANIPULATIONS
     *
     */
-    constructor(address[] _owners, uint _required)
-        MultiSigWallet(_owners, _required)
-        public
-    {
-        for (uint i = 0; i < _owners.length; i++) {
-            require(!isOwner[_owners[i]] && _owners[i] != 0);
-            isOwner[_owners[i]] = true;
-        }
-        owners = _owners;
-        required = _required;
-    }
 
     function mintToken(
         address tokenAddress,
@@ -46,7 +34,7 @@ contract TokenManagerDelegate is MultiSigWallet, Halt {
     )
         external
         notHalted
-        onlyWallet
+        onlyOwner
     {
         IMappingToken(tokenAddress).mint(to, value);
         emit MintToken(tokenAddress, to, value);
@@ -73,7 +61,6 @@ contract TokenManagerDelegate is MultiSigWallet, Halt {
         onlyOwner
     {
         address tokenAddress = new MappingToken(name, symbol, decimals);
-        
         emit AddToken(tokenAddress, name, symbol, decimals);
     }
 
@@ -82,11 +69,10 @@ contract TokenManagerDelegate is MultiSigWallet, Halt {
         onlyOwner
     {
         IMappingToken(tokenAddress).update(name, symbol);
-
         emit UpdateToken(tokenAddress, name, symbol);
     }
 
-    function changeTokenOwner(address tokenAddress, address _newOwner) external onlyWallet {
+    function changeTokenOwner(address tokenAddress, address _newOwner) external onlyOwner {
         IMappingToken(tokenAddress).changeOwner(_newOwner);
     }
 

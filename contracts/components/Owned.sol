@@ -46,6 +46,10 @@ contract Owned {
 
     address public newOwner;
 
+    function transferOwner(address _newOwner) public onlyOwner {
+        owner = _newOwner;
+    }
+
     /// @notice `owner` can step down and assign some other address to this role
     /// @param _newOwner The address of the new owner. 0x0 can be used to create
     ///  an unowned neutral vault, however that cannot be undone
