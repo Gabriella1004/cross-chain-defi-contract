@@ -4,11 +4,11 @@ pragma solidity ^0.4.26;
  * Math operations with safety checks
  */
 
-import "./components/Halt.sol";
+import "./components/Admin.sol";
 import "./MappingToken.sol";
 import "./IMappingToken.sol";
 
-contract TokenManager is Halt {
+contract CrossDelegate is Admin {
     using SafeMath for uint;
     /************************************************************
      **
@@ -33,8 +33,7 @@ contract TokenManager is Halt {
         uint    value
     )
         external
-        notHalted
-        onlyOwner
+        onlyAdmin
     {
         IMappingToken(tokenAddress).mint(to, value);
         emit MintToken(tokenAddress, to, value);
@@ -46,7 +45,6 @@ contract TokenManager is Halt {
         bytes   destAccount
     )
         external
-        notHalted
     {
         IMappingToken(tokenAddress).burn(msg.sender, value);
         emit BurnToken(tokenAddress, value, destAccount);
@@ -73,11 +71,15 @@ contract TokenManager is Halt {
     }
 
     function changeTokenOwner(address tokenAddress, address _newOwner) external onlyOwner {
-        IMappingToken(tokenAddress).changeOwner(_newOwner);
+        IMappingToken(tokenAddress).transferOwner(_newOwner);
     }
 
-    function acceptTokenOwnership(address tokenAddress) external {
-        IMappingToken(tokenAddress).acceptOwnership();
+    function addTokenAdmin(address tokenAddress, address admin) external onlyOwner {
+        IMappingToken(tokenAddress).addAdmin(admin);
+    }
+
+    function removeTokenAdmin(address tokenAddress, address admin) external onlyOwner {
+        IMappingToken(tokenAddress).removeAdmin(admin);
     }
 
 }
